@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import java.util.ArrayList;
 
 public class PlayActivity extends AppCompatActivity {
 
@@ -17,6 +18,8 @@ public class PlayActivity extends AppCompatActivity {
     ImageButton homeButton;
     TextView question;
     ImageManager thisImageManager;
+
+    ArrayList<Disease> listOfAllDiseases;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +32,7 @@ public class PlayActivity extends AppCompatActivity {
 
         question = findViewById(R.id.question);
         thisImageManager = new ImageManager();
+        listOfAllDiseases = SymptomLibrary.getInstance().getListOfAllDiseases();
 
     }
     public void onYesButtonClick(View v) {
@@ -56,6 +60,13 @@ public class PlayActivity extends AppCompatActivity {
     private void updateImage() {
         ImageView doctorImage = findViewById(R.id.doctorImage);
         doctorImage.setImageResource(thisImageManager.updateImage());
+    }
+
+    private void removeDiseases(Symptom currentSymptom) {
+        for (int i= 0; i<currentSymptom.getDiseases().size();i++) {
+            Disease thisDisease = currentSymptom.getDiseases().get(i);
+            listOfAllDiseases.remove(thisDisease);
+        }
     }
 
 }

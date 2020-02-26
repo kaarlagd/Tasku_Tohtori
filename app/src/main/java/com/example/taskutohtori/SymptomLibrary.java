@@ -11,10 +11,12 @@ public class SymptomLibrary {
 
     private ArrayList<Symptom> listOfAllSymptoms;
     private ArrayList<String> listOfAllSymptomNames;
+    private ArrayList<Disease> listOfAllDiseases;
 
-    private SymptomLibrary() {
+    public SymptomLibrary() {
         listOfAllSymptomNames = new ArrayList<>();
         listOfAllSymptoms = new ArrayList<>();
+        listOfAllDiseases = new ArrayList<>();
     }
 
     public ArrayList<Symptom> getListOfAllSymptoms() {
@@ -23,6 +25,10 @@ public class SymptomLibrary {
 
     public ArrayList<String> getListOfAllSymptomNames() {
         return  listOfAllSymptomNames;
+    }
+
+    public ArrayList<Disease> getListOfAllDiseases() {
+        return listOfAllDiseases;
     }
 
     public Symptom addSymptom(String newSymptomName) {

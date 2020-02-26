@@ -15,7 +15,7 @@ public class Symptom {
         diseases.add(disease);
     }
 
-    public ArrayList getDiseases() {
+    public ArrayList<Disease> getDiseases() {
         return diseases;
     }
     public String getName() {

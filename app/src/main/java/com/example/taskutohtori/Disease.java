@@ -14,6 +14,8 @@ public class Disease {
         this.power = 0;
         mainSymptoms = new ArrayList<>();
         rareSymptoms = new ArrayList<>();
+        SymptomLibrary.getInstance().getListOfAllDiseases().add(this);
+
     }
     public void addMainSymptom(String symptomName)  {
         mainSymptoms.add(addSymptom(symptomName));
