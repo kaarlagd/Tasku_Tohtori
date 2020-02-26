@@ -81,6 +81,7 @@
         android:id="@+id/question"
         android:layout_width="274dp"
         android:layout_height="80dp"
+        android:background="@null"
         android:ems="10"
         android:gravity="center|start|top"
         android:hapticFeedbackEnabled="true"
