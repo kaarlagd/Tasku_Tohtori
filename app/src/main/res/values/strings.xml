@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Tasku Tohtori</string>
+    <string name="first_profile_name_text">Nimi</string>
+    <string name="first_profile_name_input">esim. Jukka Palmu</string>
+    <string name="first_activity_age_text">Ikä</string>
+    <string name="first_activity_age_input">69</string>
+    <string name="first_activity_sex_text">Sukupuoli</string>
+    <string name="first_profile_sex_male">Mies</string>
+    <string name="first_profile_sex_female">Nainen</string>
+    <string name="first_profile_confirm_button">Luo Käyttäjä</string>
 </resources>
