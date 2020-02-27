@@ -2,6 +2,7 @@ package com.example.taskutohtori;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -11,7 +12,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import java.util.ArrayList;
 
+
 public class PlayActivity extends AppCompatActivity {
+    public final static String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
 
     Button yesButton;
     Button noButton;
@@ -35,7 +38,6 @@ public class PlayActivity extends AppCompatActivity {
         yesButton = findViewById(R.id.yesButton);
         noButton = findViewById(R.id.noButton);
         unsureButton = findViewById(R.id.unsureButton);
-        homeButton = findViewById(R.id.homeButton);
 
         createDiseases();
         question = findViewById(R.id.question);
@@ -70,11 +72,6 @@ public class PlayActivity extends AppCompatActivity {
         updateUI();
     }
 
-    public void onHomeButtonClick(View v) {
-        finish();
-    }
-
-
     public void newQuestion() {
         if(!allMainQuestionsAsked) {
             currentSymptom = newMainQuestion();
@@ -86,6 +83,11 @@ public class PlayActivity extends AppCompatActivity {
             Log.d("TEST","final result was STOP");
             calculateResult();
             decleareDisease = true;
+        }
+        if (currentSymptom.getName().equals("cured")) {
+            Log.d("TEST","caured");
+            decleareDisease = true;
+            result = new Disease("cured");
         }
     }
     public Symptom newMainQuestion() {
@@ -111,6 +113,9 @@ public class PlayActivity extends AppCompatActivity {
             }
         }
         Log.d("TEST","nextDisease = 0");
+        if(listOfAllDiseases.isEmpty()) {
+            return new Symptom("cured");
+        }
         createFinalSymptomList();
         allMainQuestionsAsked = true;
         return newRareQuestion();
@@ -134,7 +139,9 @@ public class PlayActivity extends AppCompatActivity {
             question.setText("Kuuluuko oireisiisi "+currentSymptom.getName()+"?");
         }
         else {
-            question.setText("Sinulla saattaa olla "+result.getName());
+            Intent intent = new Intent(this,ResultScreen.class);
+            intent.putExtra(EXTRA_MESSAGE, result.getName());
+            startActivity(intent);
         }
     }
 
@@ -193,12 +200,22 @@ public class PlayActivity extends AppCompatActivity {
         flunssa.addRareSymptom("lihaskipu");
         flunssa.addRareSymptom("yskä");
         flunssa.addRareSymptom("tukkoisuus");
+        flunssa.addRareSymptom("kurkkukipu");
 
         Disease vatsatauti = new Disease("vatsatauti");
         vatsatauti.addMainSymptom("lievä mahakipu");
         vatsatauti.addMainSymptom("ripuli");
         vatsatauti.addRareSymptom( "Oksentelu");
         vatsatauti.addRareSymptom("lievä kuume");
+
+        Disease koronavirus = new Disease("koronavirus");
+        koronavirus.addMainSymptom("yskä");
+        koronavirus.addMainSymptom("kuume");
+        koronavirus.addMainSymptom("nopeasti nouseva kova kuume");
+        koronavirus.addMainSymptom("lihaskipu");
+        koronavirus.addRareSymptom("veriyskä");
+        koronavirus.addRareSymptom("hengenahdistus");
+
     }
 
 }

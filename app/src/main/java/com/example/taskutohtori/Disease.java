@@ -9,6 +9,7 @@ public class Disease {
     private float power;
     private ArrayList<Symptom> mainSymptoms;
     private ArrayList<Symptom> rareSymptoms;
+    private ArrayList<Symptom> allSymptoms;
 
 
     public Disease(String name) {
@@ -16,6 +17,7 @@ public class Disease {
         this.power = 0;
         mainSymptoms = new ArrayList<>();
         rareSymptoms = new ArrayList<>();
+        allSymptoms = new ArrayList<>();
         SymptomLibrary.getInstance().addDiseaseToListOfAllDiseases(this);
         Log.d("TEST","new disease added size of List of all diseases is "+SymptomLibrary.getInstance().getListOfAllDiseases().size());
 
@@ -83,12 +85,24 @@ public class Disease {
     public void updateFinalPower(ArrayList<Symptom> askedSymptoms) {
         this.power = 0;
         int containedSymptoms = 0;
-        for (int i= 0; i < this.rareSymptoms.size();i++) {
-            if (askedSymptoms.contains(this.rareSymptoms.get(i))) {
+        this.combineSymptomLists();
+        for (int i= 0; i < askedSymptoms.size();i++) {
+            if (this.allSymptoms.contains(askedSymptoms.get(i))) {
                 containedSymptoms++;
             }
+            else {
+                if (containedSymptoms>0) {
+                    containedSymptoms--;
+                }
+            }
         }
-        this.power = (float)containedSymptoms/this.rareSymptoms.size();
+        this.power = (float)containedSymptoms/this.allSymptoms.size();
         Log.d("TEST","power of rare symptoms is = "+this.printDisease());
+    }
+    public void combineSymptomLists() {
+        this.allSymptoms = this.mainSymptoms;
+        for(int i= 0;i<this.getRareSymptoms().size();i++) {
+            this.allSymptoms.add(this.getRareSymptoms().get(i));
+        }
     }
 }
