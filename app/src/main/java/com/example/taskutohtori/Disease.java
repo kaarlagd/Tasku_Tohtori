@@ -73,11 +73,22 @@ public class Disease {
             }
         }
         this.power = (float)containedSymptoms/this.mainSymptoms.size();
-        Log.d("TEST",""+containedSymptoms);
-        Log.d("TEST",""+this.mainSymptoms.size());
+        Log.d("TEST","" +containedSymptoms);
+        Log.d("TEST","number of main symptoms "+this.mainSymptoms.size());
         Log.d("TEST","power updated and is now "+this.power);
     }
     public String printDisease() {
         return this.name+", power = "+this.power;
+    }
+    public void updateFinalPower(ArrayList<Symptom> askedSymptoms) {
+        this.power = 0;
+        int containedSymptoms = 0;
+        for (int i= 0; i < this.rareSymptoms.size();i++) {
+            if (askedSymptoms.contains(this.rareSymptoms.get(i))) {
+                containedSymptoms++;
+            }
+        }
+        this.power = (float)containedSymptoms/this.rareSymptoms.size();
+        Log.d("TEST","power of rare symptoms is = "+this.printDisease());
     }
 }

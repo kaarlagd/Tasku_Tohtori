@@ -25,6 +25,8 @@ public class PlayActivity extends AppCompatActivity {
     Symptom currentSymptom;
     ArrayList<Symptom> finalSymptoms;
     Boolean allMainQuestionsAsked;
+    Disease result;
+    boolean decleareDisease;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +44,7 @@ public class PlayActivity extends AppCompatActivity {
         positiveSymptoms = new ArrayList<>();
         finalSymptoms = new ArrayList<>();
         allMainQuestionsAsked = false;
+        decleareDisease = false;
         newQuestion();
         updateUI();
 
@@ -56,7 +59,9 @@ public class PlayActivity extends AppCompatActivity {
 
     public void onNoButtonClick(View v) {
         Log.d("TEST","pressed no buttom");
-        removeDiseases(currentSymptom);
+        if(!allMainQuestionsAsked) {
+            removeDiseases(currentSymptom);
+        }
         newQuestion();
         updateUI();
     }
@@ -77,6 +82,11 @@ public class PlayActivity extends AppCompatActivity {
         else {
             currentSymptom = newRareQuestion();
         }
+        if (currentSymptom.getName().equals("stop")) {
+            Log.d("TEST","final result was STOP");
+            calculateResult();
+            decleareDisease = true;
+        }
     }
     public Symptom newMainQuestion() {
         Log.d("TEST","newMainQuestion");
@@ -92,8 +102,6 @@ public class PlayActivity extends AppCompatActivity {
                 maxPower = thisPower;
             }
         }
-
-
         if (nextDisease != null) {
             Log.d("TEST","nextDisease is not empty");
             for(int i= 0; i < nextDisease.getMainSymptoms().size(); i++) {
@@ -109,10 +117,12 @@ public class PlayActivity extends AppCompatActivity {
     }
     public Symptom newRareQuestion() {
         Log.d("TEST","newRareQuestion");
-        if(!finalSymptoms.get(0).equals(null)) {
-            return finalSymptoms.get(0);
+        if(!finalSymptoms.isEmpty()) {
+            currentSymptom = finalSymptoms.get(0);
+            finalSymptoms.remove(finalSymptoms.get(0));
+            return currentSymptom;
         }
-        return null;
+        return new Symptom("stop");
     }
 
     //to be called after each button press(kyllä, ei, en osaa sanoa)
@@ -120,7 +130,12 @@ public class PlayActivity extends AppCompatActivity {
         ImageView doctorImage = findViewById(R.id.doctorImage);
         doctorImage.setImageResource(thisImageManager.updateImage());
 
-        question.setText("Kuuluuko oireisiisi "+currentSymptom.getName()+"?");
+        if(decleareDisease==false) {
+            question.setText("Kuuluuko oireisiisi "+currentSymptom.getName()+"?");
+        }
+        else {
+            question.setText("Sinulla saattaa olla "+result.getName());
+        }
     }
 
     //to be called after user answers no to the question
@@ -156,6 +171,19 @@ public class PlayActivity extends AppCompatActivity {
             }
         }
         Log.d("TEST","Size of final symptomlist is = "+finalSymptoms.size());
+    }
+
+    private void calculateResult() {
+        float bestResult = 0;
+        for (int i= 0; i< listOfAllDiseases.size(); i++) {
+            listOfAllDiseases.get(i).updateFinalPower(positiveSymptoms);
+            Log.d("TEST","Calculating final power");
+            if(listOfAllDiseases.get(i).getPower()>=bestResult) {
+                result = listOfAllDiseases.get(i);
+                Log.d("TEST","result is "+result.getName());
+                bestResult = listOfAllDiseases.get(i).getPower();
+            }
+        }
     }
 
     private void createDiseases() {
