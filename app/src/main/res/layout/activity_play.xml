@@ -72,7 +72,7 @@
         android:id="@+id/doctorImage"
         android:layout_width="480dp"
         android:layout_height="473dp"
-        android:onClick="onHomeButtonclick"
+        android:onClick="onHomeButtonClick"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"

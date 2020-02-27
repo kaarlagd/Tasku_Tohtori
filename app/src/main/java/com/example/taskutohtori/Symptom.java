@@ -1,5 +1,7 @@
 package com.example.taskutohtori;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 public class Symptom {
@@ -12,6 +14,7 @@ public class Symptom {
     }
 
     public void putDisease(Disease disease) {
+        Log.d("TEST","puttig disease into "+this.getName());
         diseases.add(disease);
     }
 
@@ -20,5 +23,9 @@ public class Symptom {
     }
     public String getName() {
         return this.name;
+    }
+
+    public String printSymptom() {
+        return this.getName()+" size of its diseases list is "+this.getDiseases().size();
     }
 }

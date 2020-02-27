@@ -1,5 +1,7 @@
 package com.example.taskutohtori;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 public class SymptomLibrary {
@@ -34,7 +36,11 @@ public class SymptomLibrary {
     public Symptom addSymptom(String newSymptomName) {
         listOfAllSymptomNames.add(newSymptomName);
         listOfAllSymptoms.add(new Symptom(newSymptomName));
+        Log.d("TEST","Size of list of all Symptoms is = "+SymptomLibrary.getInstance().getSize());
         return listOfAllSymptoms.get(listOfAllSymptoms.size()-1);
+    }
+    public void addDiseaseToListOfAllDiseases(Disease disease) {
+        listOfAllDiseases.add(disease);
     }
 
     public int getSize() {
