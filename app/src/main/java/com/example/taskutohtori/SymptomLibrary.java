@@ -46,4 +46,17 @@ public class SymptomLibrary {
     public int getSize() {
         return listOfAllSymptomNames.size();
     }
+    public ArrayList<String> debugdiseases() {
+        ArrayList<String> listOfSymptoms = new ArrayList<>();
+        for(int i=0;i<listOfAllSymptoms.size();i++) {
+            listOfSymptoms.add(listOfAllSymptoms.get(i).getName());
+        }
+        return  listOfSymptoms;
+    }
+    public void resetSymptomLibrary() {
+        listOfAllSymptomNames = new ArrayList<>();
+        listOfAllSymptoms = new ArrayList<>();
+        listOfAllDiseases = new ArrayList<>();
+    }
+
 }

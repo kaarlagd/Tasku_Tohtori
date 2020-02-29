@@ -91,9 +91,7 @@ public class Disease {
                 containedSymptoms++;
             }
             else {
-                if (containedSymptoms>0) {
-                    containedSymptoms--;
-                }
+                containedSymptoms--;
             }
         }
         this.power = (float)containedSymptoms/this.allSymptoms.size();

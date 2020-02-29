@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Tasku Tohtori</string>
+    <string name="app_name">Taskutohtori</string>
     <string name="first_profile_name_text">Nimi</string>
     <string name="first_profile_name_input">esim. Jukka Palmu</string>
     <string name="first_activity_age_text">Ikä</string>

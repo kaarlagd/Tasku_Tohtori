@@ -25,11 +25,13 @@ public class PlayActivity extends AppCompatActivity {
 
     ArrayList<Disease> listOfAllDiseases;
     ArrayList<Symptom> positiveSymptoms;
+    ArrayList<Symptom> askedSymptoms;
     Symptom currentSymptom;
     ArrayList<Symptom> finalSymptoms;
     Boolean allMainQuestionsAsked;
     Disease result;
     boolean decleareDisease;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +46,7 @@ public class PlayActivity extends AppCompatActivity {
         thisImageManager = new ImageManager();
         listOfAllDiseases = SymptomLibrary.getInstance().getListOfAllDiseases();
         positiveSymptoms = new ArrayList<>();
+        askedSymptoms = new ArrayList<>();
         finalSymptoms = new ArrayList<>();
         allMainQuestionsAsked = false;
         decleareDisease = false;
@@ -73,6 +76,8 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     public void newQuestion() {
+        printPositiveSymptoms();
+        Log.d("TEST","all symptoms list"+ SymptomLibrary.getInstance().debugdiseases());
         if(!allMainQuestionsAsked) {
             currentSymptom = newMainQuestion();
         }
@@ -135,28 +140,36 @@ public class PlayActivity extends AppCompatActivity {
         ImageView doctorImage = findViewById(R.id.doctorImage);
         doctorImage.setImageResource(thisImageManager.updateImage());
 
-        if(decleareDisease==false) {
+        if(!decleareDisease) {
             question.setText("Kuuluuko oireisiisi "+currentSymptom.getName()+"?");
         }
         else {
             Intent intent = new Intent(this,ResultScreen.class);
             intent.putExtra(EXTRA_MESSAGE, result.getName());
+            SymptomLibrary.getInstance().resetSymptomLibrary();
             startActivity(intent);
+            finish();
         }
     }
 
     //to be called after user answers no to the question
     private void removeDiseases(Symptom currentSymptom) {
+        askedSymptoms.add(currentSymptom);
         for (int i= 0; i<currentSymptom.getDiseases().size();i++) {
             Disease thisDisease = currentSymptom.getDiseases().get(i);
-            listOfAllDiseases.remove(thisDisease);
-            Log.d("TEST","Removed "+thisDisease.printDisease());
+            if(thisDisease.getMainSymptoms().contains(currentSymptom))
+            {
+                listOfAllDiseases.remove(thisDisease);
+                Log.d("TEST","Removed "+thisDisease.printDisease());
+            }
+
         }
     }
 
     //to Be called after user answers yes to the question
     private void increaseDiseasePower(Symptom currentSymptom) {
         positiveSymptoms.add(currentSymptom);
+        askedSymptoms.add(currentSymptom);
         Log.d("TEST","Size of list of positive symptoms = "+positiveSymptoms.size());
         Log.d("TEST","Size of current symptoms Diseases list = "+currentSymptom.getDiseases().size());
         for (int i = 0; i < currentSymptom.getDiseases().size();i++) {
@@ -172,7 +185,7 @@ public class PlayActivity extends AppCompatActivity {
         Log.d("TEST","Creating final Symptomlist");
         for(int i= 0; i<listOfAllDiseases.size();i++) {
             for(int l=0;l<listOfAllDiseases.get(i).getRareSymptoms().size();l++) {
-                if(!positiveSymptoms.contains(listOfAllDiseases.get(i).getRareSymptoms().get(l))) {
+                if(!askedSymptoms.contains(listOfAllDiseases.get(i).getRareSymptoms().get(l))) {
                     finalSymptoms.add(listOfAllDiseases.get(i).getRareSymptoms().get(l));
                 }
             }
@@ -181,17 +194,19 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void calculateResult() {
-        float bestResult = 0;
+        float bestResult = -9001;
         for (int i= 0; i< listOfAllDiseases.size(); i++) {
             listOfAllDiseases.get(i).updateFinalPower(positiveSymptoms);
             Log.d("TEST","Calculating final power");
             if(listOfAllDiseases.get(i).getPower()>=bestResult) {
                 result = listOfAllDiseases.get(i);
-                Log.d("TEST","result is "+result.getName());
                 bestResult = listOfAllDiseases.get(i).getPower();
+                Log.d("TEST","finalPower "+ listOfAllDiseases.get(i).printDisease());
             }
         }
+        Log.d("TEST","result is "+result.getName());
     }
+
 
     private void createDiseases() {
         Disease flunssa = new Disease("flunssa");
@@ -214,8 +229,33 @@ public class PlayActivity extends AppCompatActivity {
         koronavirus.addMainSymptom("nopeasti nouseva kova kuume");
         koronavirus.addMainSymptom("lihaskipu");
         koronavirus.addRareSymptom("veriyskä");
+        koronavirus.addRareSymptom("hengitystieoireita");
         koronavirus.addRareSymptom("hengenahdistus");
+        koronavirus.addRareSymptom("tukkoisuus");
+        koronavirus.addRareSymptom("kurkkukipu");
 
+        Disease korvatulehdus = new Disease("korvatulehdus");
+        korvatulehdus.addMainSymptom("korvakipu");
+        korvatulehdus.addRareSymptom("nuha");
+        korvatulehdus.addRareSymptom("yskä");
+        korvatulehdus.addRareSymptom("kuulon heikkeneminen");
+        korvatulehdus.addRareSymptom("kuume");
+        korvatulehdus.addRareSymptom("silmien punoitus");
+
+        Disease tuhkarokko = new Disease("tuhkarokko");
+        tuhkarokko.addMainSymptom("nopeasti nouseva kova kuume");
+        tuhkarokko.addMainSymptom("hengitystieoireita");
+        tuhkarokko.addMainSymptom("ihottuma");
+        tuhkarokko.addRareSymptom("valon arkuus");
+        tuhkarokko.addRareSymptom("ripuli");
+        tuhkarokko.addRareSymptom("hengenahdistus");
+        tuhkarokko.addRareSymptom("kuume");
+
+    }
+    private void printPositiveSymptoms() {
+        for(int i= 0;i<positiveSymptoms.size();i++) {
+            Log.d("TEST",""+positiveSymptoms.get(i).getName());
+        }
     }
 
 }
