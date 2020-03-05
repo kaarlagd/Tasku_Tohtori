@@ -153,7 +153,7 @@ public class PlayActivity extends AppCompatActivity {
         askedSymptoms.add(currentSymptom);
         for (int i = 0; i < database.getJoinerDao().getDiseasesWithSymptomId(currentSymptom.id).size(); i++) {
             Disease thisDisease = database.getJoinerDao().getDiseasesWithSymptomId(currentSymptom.id).get(i);
-            if(database.getJoinerDao().getMainSymptomsWithDiseaseId(thisDisease.id).contains(new MainSymptom(currentSymptom.name)))
+            if(database.getJoinerDao().getMainSymptomsWithDiseaseId(thisDisease.id).contains(new MainSymptom(currentSymptom.id, currentSymptom.name)))
             {
                 listOfAllDiseases.remove(thisDisease);
             }
