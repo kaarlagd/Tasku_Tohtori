@@ -78,7 +78,7 @@ public class PlayActivity extends AppCompatActivity {
     public void newQuestion() {
         
         if(!allMainQuestionsAsked) {
-            currentSymptom = new Symptom(newMainQuestion().name);
+            currentSymptom = new Symptom(newMainQuestion().id, newMainQuestion().name);
         }
         else {
             currentSymptom = newRareQuestion();
@@ -107,8 +107,10 @@ public class PlayActivity extends AppCompatActivity {
         }
         if(nextDisease != null) {
             for(int i = 0; i < database.getJoinerDao().getMainSymptomsWithDiseaseId(nextDisease.id).size(); i++) {
-                if (!positiveSymptoms.contains(new Symptom(database.getJoinerDao().getMainSymptomsWithDiseaseId(nextDisease.id).get(i).name))) {
-                    return new Symptom(database.getJoinerDao().getMainSymptomsWithDiseaseId(nextDisease.id).get(i).name);
+                if (!positiveSymptoms.contains(new Symptom(database.getJoinerDao().getMainSymptomsWithDiseaseId(nextDisease.id).get(i).id,
+                        database.getJoinerDao().getMainSymptomsWithDiseaseId(nextDisease.id).get(i).name))) {
+                    return new Symptom(database.getJoinerDao().getMainSymptomsWithDiseaseId(nextDisease.id).get(i).id,
+                            database.getJoinerDao().getMainSymptomsWithDiseaseId(nextDisease.id).get(i).name);
                 }
             }
         }
@@ -181,7 +183,8 @@ public class PlayActivity extends AppCompatActivity {
 
         int containedSymptoms = 0;
         for (int i= 0; i < database.getJoinerDao().getMainSymptomsWithDiseaseId(thisDisease.id).size();i++) {
-            if (askedSymptoms.contains(new Symptom(database.getJoinerDao().getMainSymptomsWithDiseaseId(thisDisease.id).get(i).name))) {
+            if (askedSymptoms.contains(new Symptom(database.getJoinerDao().getMainSymptomsWithDiseaseId(thisDisease.id).get(i).id,
+                    database.getJoinerDao().getMainSymptomsWithDiseaseId(thisDisease.id).get(i).name))) {
                 containedSymptoms++;
             }
         }
@@ -207,8 +210,10 @@ public class PlayActivity extends AppCompatActivity {
     private void createFinalMainSymptomList() {
         for(int i = 0; i<listOfAllDiseases.size(); i++) {
             for(int j = 0; j < database.getJoinerDao().getSymptomsWithDiseaseId(listOfAllDiseases.get(i).id).size(); j++) {
-                if(!askedSymptoms.contains(new Symptom(database.getJoinerDao().getSymptomsWithDiseaseId(listOfAllDiseases.get(i).id).get(j).name))) {
-                    finalSymptoms.add(new Symptom(database.getJoinerDao().getSymptomsWithDiseaseId(listOfAllDiseases.get(i).id).get(j).name));
+                if(!askedSymptoms.contains(new Symptom(database.getJoinerDao().getSymptomsWithDiseaseId(listOfAllDiseases.get(i).id).get(j).id,
+                        database.getJoinerDao().getSymptomsWithDiseaseId(listOfAllDiseases.get(i).id).get(j).name))) {
+                    finalSymptoms.add(new Symptom(database.getJoinerDao().getSymptomsWithDiseaseId(listOfAllDiseases.get(i).id).get(j).id,
+                            database.getJoinerDao().getSymptomsWithDiseaseId(listOfAllDiseases.get(i).id).get(j).name));
                 }
             }
         }
