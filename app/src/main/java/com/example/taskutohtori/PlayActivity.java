@@ -1,16 +1,16 @@
 package com.example.taskutohtori;
 
 import androidx.appcompat.app.AppCompatActivity;
-
+import androidx.room.Room;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class PlayActivity extends AppCompatActivity {
@@ -19,7 +19,6 @@ public class PlayActivity extends AppCompatActivity {
     Button yesButton;
     Button noButton;
     Button unsureButton;
-    ImageButton homeButton;
     TextView question;
     ImageManager thisImageManager;
 
@@ -30,40 +29,41 @@ public class PlayActivity extends AppCompatActivity {
     ArrayList<Symptom> finalSymptoms;
     Boolean allMainQuestionsAsked;
     Disease result;
-    boolean decleareDisease;
-
+    boolean declareDisease;
+    DatabaseT database;
+    HashMap<Disease, Float> powerMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
+
+        database = Room.databaseBuilder(this, DatabaseT.class, "Database").allowMainThreadQueries().fallbackToDestructiveMigration().build();
+        createDiseases();
+
         yesButton = findViewById(R.id.yesButton);
         noButton = findViewById(R.id.noButton);
         unsureButton = findViewById(R.id.unsureButton);
-
-        createDiseases();
         question = findViewById(R.id.question);
         thisImageManager = new ImageManager();
-        listOfAllDiseases = SymptomLibrary.getInstance().getListOfAllDiseases();
+        listOfAllDiseases = (ArrayList<Disease>) database.getDiseaseDao().getAllDiseases();
         positiveSymptoms = new ArrayList<>();
         askedSymptoms = new ArrayList<>();
         finalSymptoms = new ArrayList<>();
         allMainQuestionsAsked = false;
-        decleareDisease = false;
+        declareDisease = false;
+        powerMap = new HashMap<>();
+        createPower();
         newQuestion();
         updateUI();
-
-
     }
     public void onYesButtonClick(View v) {
-        Log.d("TEST","pressed yes buttom");
         increaseDiseasePower(currentSymptom);
         newQuestion();
         updateUI();
     }
 
     public void onNoButtonClick(View v) {
-        Log.d("TEST","pressed no buttom");
         if(!allMainQuestionsAsked) {
             removeDiseases(currentSymptom);
         }
@@ -76,63 +76,58 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     public void newQuestion() {
-        printPositiveSymptoms();
-        Log.d("TEST","all symptoms list"+ SymptomLibrary.getInstance().debugdiseases());
+        
         if(!allMainQuestionsAsked) {
-            currentSymptom = newMainQuestion();
+            currentSymptom = new Symptom(newMainQuestion().name);
         }
         else {
             currentSymptom = newRareQuestion();
         }
-        if (currentSymptom.getName().equals("stop")) {
-            Log.d("TEST","final result was STOP");
+        if (currentSymptom.name.equals("Stop")) {
             calculateResult();
-            decleareDisease = true;
+            declareDisease = true;
         }
-        if (currentSymptom.getName().equals("cured")) {
-            Log.d("TEST","caured");
-            decleareDisease = true;
-            result = new Disease("cured");
+        if (currentSymptom.name.equals("Cured")) {
+            declareDisease = true;
+            result = new Disease("Cured", 0, 0);
         }
     }
+
     public Symptom newMainQuestion() {
-        Log.d("TEST","newMainQuestion");
+
         float maxPower = 0;
         Disease nextDisease = null;
-        Log.d("TEST","Size of listOfAllDiseases is = "+SymptomLibrary.getInstance().getListOfAllDiseases().size());
-        for(int i = 0; i< SymptomLibrary.getInstance().getListOfAllDiseases().size(); i++) {
-            float thisPower = SymptomLibrary.getInstance().getListOfAllDiseases().get(i).getPower();
-            Log.d("TEST","this power " +SymptomLibrary.getInstance().getListOfAllDiseases().get(i).printDisease());
+
+        for(int i = 0; i < listOfAllDiseases.size(); i++) {
+            float thisPower = powerMap.get(listOfAllDiseases.get(i));
             if (thisPower >= maxPower && thisPower != 1) {
-                Log.d("TEST","updating maxPower of "+SymptomLibrary.getInstance().getListOfAllDiseases().get(i).printDisease());
-                nextDisease = SymptomLibrary.getInstance().getListOfAllDiseases().get(i);
+                nextDisease = listOfAllDiseases.get(i);
                 maxPower = thisPower;
             }
         }
-        if (nextDisease != null) {
-            Log.d("TEST","nextDisease is not empty");
-            for(int i= 0; i < nextDisease.getMainSymptoms().size(); i++) {
-                if (!positiveSymptoms.contains(nextDisease.getMainSymptoms().get(i))) {
-                    return nextDisease.getMainSymptoms().get(i);
+        if(nextDisease != null) {
+            for(int i = 0; i < database.getJoinerDao().getMainSymptomsWithDiseaseId(nextDisease.id).size(); i++) {
+                if (!positiveSymptoms.contains(new Symptom(database.getJoinerDao().getMainSymptomsWithDiseaseId(nextDisease.id).get(i).name))) {
+                    return new Symptom(database.getJoinerDao().getMainSymptomsWithDiseaseId(nextDisease.id).get(i).name);
                 }
             }
         }
-        Log.d("TEST","nextDisease = 0");
         if(listOfAllDiseases.isEmpty()) {
-            return new Symptom("cured");
+            return new Symptom("Cured");
         }
-        createFinalSymptomList();
+        createFinalMainSymptomList();
         allMainQuestionsAsked = true;
-        return newRareQuestion();
+        return (newRareQuestion());
     }
+
+
     public Symptom newRareQuestion() {
-        Log.d("TEST","newRareQuestion");
         if(!finalSymptoms.isEmpty()) {
             currentSymptom = finalSymptoms.get(0);
             finalSymptoms.remove(finalSymptoms.get(0));
             return currentSymptom;
         }
-        return new Symptom("stop");
+        return new Symptom("Stop");
     }
 
     //to be called after each button press(kyllä, ei, en osaa sanoa)
@@ -140,13 +135,12 @@ public class PlayActivity extends AppCompatActivity {
         ImageView doctorImage = findViewById(R.id.doctorImage);
         doctorImage.setImageResource(thisImageManager.updateImage());
 
-        if(!decleareDisease) {
-            question.setText("Kuuluuko oireisiisi "+currentSymptom.getName()+"?");
+        if(!declareDisease) {
+            question.setText("Kuuluuko oireisiisi " + currentSymptom.name + "?");
         }
         else {
             Intent intent = new Intent(this,ResultScreen.class);
-            intent.putExtra(EXTRA_MESSAGE, result.getName());
-            SymptomLibrary.getInstance().resetSymptomLibrary();
+            intent.putExtra(EXTRA_MESSAGE, result.name);
             startActivity(intent);
             finish();
         }
@@ -155,12 +149,11 @@ public class PlayActivity extends AppCompatActivity {
     //to be called after user answers no to the question
     private void removeDiseases(Symptom currentSymptom) {
         askedSymptoms.add(currentSymptom);
-        for (int i= 0; i<currentSymptom.getDiseases().size();i++) {
-            Disease thisDisease = currentSymptom.getDiseases().get(i);
-            if(thisDisease.getMainSymptoms().contains(currentSymptom))
+        for (int i = 0; i < database.getJoinerDao().getDiseasesWithSymptomId(currentSymptom.id).size(); i++) {
+            Disease thisDisease = database.getJoinerDao().getDiseasesWithSymptomId(currentSymptom.id).get(i);
+            if(database.getJoinerDao().getMainSymptomsWithDiseaseId(thisDisease.id).contains(new MainSymptom(currentSymptom.name)))
             {
                 listOfAllDiseases.remove(thisDisease);
-                Log.d("TEST","Removed "+thisDisease.printDisease());
             }
 
         }
@@ -170,92 +163,117 @@ public class PlayActivity extends AppCompatActivity {
     private void increaseDiseasePower(Symptom currentSymptom) {
         positiveSymptoms.add(currentSymptom);
         askedSymptoms.add(currentSymptom);
-        Log.d("TEST","Size of list of positive symptoms = "+positiveSymptoms.size());
-        Log.d("TEST","Size of current symptoms Diseases list = "+currentSymptom.getDiseases().size());
-        for (int i = 0; i < currentSymptom.getDiseases().size();i++) {
-            Disease thisDisease = currentSymptom.getDiseases().get(i);
-            thisDisease.updatePower(positiveSymptoms);
-            Log.d("TEST","current positivesymptoms "+positiveSymptoms.size());
-            Log.d("TEST","updating this Symptoms Power "+ thisDisease.printDisease());
+        for (int i = 0; i < database.getJoinerDao().getDiseasesWithSymptomId(currentSymptom.id).size(); i++) {
+            Disease thisDisease = database.getJoinerDao().getDiseasesWithSymptomId(currentSymptom.id).get(i);
+            updatePower(thisDisease);
         }
     }
 
+    public void createPower() {
 
-    private void createFinalSymptomList() {
-        Log.d("TEST","Creating final Symptomlist");
-        for(int i= 0; i<listOfAllDiseases.size();i++) {
-            for(int l=0;l<listOfAllDiseases.get(i).getRareSymptoms().size();l++) {
-                if(!askedSymptoms.contains(listOfAllDiseases.get(i).getRareSymptoms().get(l))) {
-                    finalSymptoms.add(listOfAllDiseases.get(i).getRareSymptoms().get(l));
+        for(int i = 0; i < listOfAllDiseases.size(); i++) {
+            Log.d("TEST124", "Diseases by name: " + listOfAllDiseases.get(i).name);
+            powerMap.put(listOfAllDiseases.get(i), (float) 0.0);
+        }
+    }
+
+    public void updatePower(Disease thisDisease) {
+
+        int containedSymptoms = 0;
+        for (int i= 0; i < database.getJoinerDao().getMainSymptomsWithDiseaseId(thisDisease.id).size();i++) {
+            if (askedSymptoms.contains(new Symptom(database.getJoinerDao().getMainSymptomsWithDiseaseId(thisDisease.id).get(i).name))) {
+                containedSymptoms++;
+            }
+        }
+        powerMap.put(thisDisease, (float) containedSymptoms/database.getJoinerDao().getMainSymptomsWithDiseaseId(thisDisease.id).size());
+    }
+
+    public void updateFinalPower(Disease askedDisease) {
+
+        int containedSymptoms = 0;
+
+        ArrayList<Symptom> allSymptoms = (ArrayList<Symptom>) database.getJoinerDao().getSymptomsWithDiseaseId(askedDisease.id);
+
+        for (int i = 0; i < askedSymptoms.size(); i++) {
+            if (allSymptoms.contains(askedSymptoms.get(i))) {
+                containedSymptoms++;
+            } else {
+                containedSymptoms--;
+            }
+        }
+        powerMap.put(askedDisease, (float) containedSymptoms / allSymptoms.size());
+    }
+
+    private void createFinalMainSymptomList() {
+        for(int i = 0; i<listOfAllDiseases.size(); i++) {
+            for(int j = 0; j < database.getJoinerDao().getSymptomsWithDiseaseId(listOfAllDiseases.get(i).id).size(); j++) {
+                if(!askedSymptoms.contains(new Symptom(database.getJoinerDao().getSymptomsWithDiseaseId(listOfAllDiseases.get(i).id).get(j).name))) {
+                    finalSymptoms.add(new Symptom(database.getJoinerDao().getSymptomsWithDiseaseId(listOfAllDiseases.get(i).id).get(j).name));
                 }
             }
         }
-        Log.d("TEST","Size of final symptomlist is = "+finalSymptoms.size());
     }
 
     private void calculateResult() {
         float bestResult = -9001;
-        for (int i= 0; i< listOfAllDiseases.size(); i++) {
-            listOfAllDiseases.get(i).updateFinalPower(positiveSymptoms);
-            Log.d("TEST","Calculating final power");
-            if(listOfAllDiseases.get(i).getPower()>=bestResult) {
+        for (int i= 0; i < listOfAllDiseases.size(); i++) {
+            updateFinalPower(listOfAllDiseases.get(i));
+            if(powerMap.get(listOfAllDiseases.get(i)) >= bestResult) {
                 result = listOfAllDiseases.get(i);
-                bestResult = listOfAllDiseases.get(i).getPower();
-                Log.d("TEST","finalPower "+ listOfAllDiseases.get(i).printDisease());
+                bestResult = powerMap.get(listOfAllDiseases.get(i));
             }
         }
-        Log.d("TEST","result is "+result.getName());
     }
-
 
     private void createDiseases() {
-        Disease flunssa = new Disease("flunssa");
-        flunssa.addMainSymptom("nuha");
-        flunssa.addMainSymptom("kuume");
-        flunssa.addRareSymptom("lihaskipu");
-        flunssa.addRareSymptom("yskä");
-        flunssa.addRareSymptom("tukkoisuus");
-        flunssa.addRareSymptom("kurkkukipu");
 
-        Disease vatsatauti = new Disease("vatsatauti");
-        vatsatauti.addMainSymptom("lievä mahakipu");
-        vatsatauti.addMainSymptom("ripuli");
-        vatsatauti.addRareSymptom( "Oksentelu");
-        vatsatauti.addRareSymptom("lievä kuume");
+        database.clearAllTables();
 
-        Disease koronavirus = new Disease("koronavirus");
-        koronavirus.addMainSymptom("yskä");
-        koronavirus.addMainSymptom("kuume");
-        koronavirus.addMainSymptom("nopeasti nouseva kova kuume");
-        koronavirus.addMainSymptom("lihaskipu");
-        koronavirus.addRareSymptom("veriyskä");
-        koronavirus.addRareSymptom("hengitystieoireita");
-        koronavirus.addRareSymptom("hengenahdistus");
-        koronavirus.addRareSymptom("tukkoisuus");
-        koronavirus.addRareSymptom("kurkkukipu");
+        database.getDiseaseDao().insertDisease(new Disease("Flunssa", 0, 0));
 
-        Disease korvatulehdus = new Disease("korvatulehdus");
-        korvatulehdus.addMainSymptom("korvakipu");
-        korvatulehdus.addRareSymptom("nuha");
-        korvatulehdus.addRareSymptom("yskä");
-        korvatulehdus.addRareSymptom("kuulon heikkeneminen");
-        korvatulehdus.addRareSymptom("kuume");
-        korvatulehdus.addRareSymptom("silmien punoitus");
+        database.getMainSymptomDao().insertMainSymptom(new MainSymptom("Kuume"));
+        database.getMainSymptomDao().insertMainSymptom(new MainSymptom("Nuha"));
 
-        Disease tuhkarokko = new Disease("tuhkarokko");
-        tuhkarokko.addMainSymptom("nopeasti nouseva kova kuume");
-        tuhkarokko.addMainSymptom("hengitystieoireita");
-        tuhkarokko.addMainSymptom("ihottuma");
-        tuhkarokko.addRareSymptom("valon arkuus");
-        tuhkarokko.addRareSymptom("ripuli");
-        tuhkarokko.addRareSymptom("hengenahdistus");
-        tuhkarokko.addRareSymptom("kuume");
+        database.getRareSymptomDao().insertRareSymptom(new RareSymptom("Lihaskipu"));
+        database.getRareSymptomDao().insertRareSymptom(new RareSymptom("Yskä"));
+        database.getRareSymptomDao().insertRareSymptom(new RareSymptom("Tukkoisuus"));
+        database.getRareSymptomDao().insertRareSymptom(new RareSymptom("Kurkkukipu"));
 
+        database.getSymptomDao().insertSymptom(new Symptom("Kuume"));
+        database.getSymptomDao().insertSymptom(new Symptom("Nuha"));
+        database.getSymptomDao().insertSymptom(new Symptom("Lihaskipu"));
+        database.getSymptomDao().insertSymptom(new Symptom("Yskä"));
+        database.getSymptomDao().insertSymptom(new Symptom("Tukkoisuus"));
+        database.getSymptomDao().insertSymptom(new Symptom("Kurkkukipu"));
+
+        database.getJoinerDao().insertJoinerValue(new Joiner
+                (database.getDiseaseDao().getDiseaseIdWithName("Flunssa"), 
+                        database.getSymptomDao().getSymptomIdWithName("Kuume"), 
+                        database.getMainSymptomDao().getMainSymptomIdWithName("Kuume"), null));
+
+        database.getJoinerDao().insertJoinerValue(new Joiner
+                (database.getDiseaseDao().getDiseaseIdWithName("Flunssa"),
+                        database.getSymptomDao().getSymptomIdWithName("Nuha"),
+                        database.getMainSymptomDao().getMainSymptomIdWithName("Nuha"), null));
+
+        database.getJoinerDao().insertJoinerValue(new Joiner
+                (database.getDiseaseDao().getDiseaseIdWithName("Flunssa"),
+                        database.getSymptomDao().getSymptomIdWithName("Lihaskipu"), null,
+                        database.getRareSymptomDao().getRareSymptomIdWithName("Lihaskipu")));
+
+        database.getJoinerDao().insertJoinerValue(new Joiner
+                (database.getDiseaseDao().getDiseaseIdWithName("Flunssa"),
+                        database.getSymptomDao().getSymptomIdWithName("Yskä"), null,
+                        database.getRareSymptomDao().getRareSymptomIdWithName("Yskä")));
+
+        database.getJoinerDao().insertJoinerValue(new Joiner
+                (database.getDiseaseDao().getDiseaseIdWithName("Flunssa"),
+                        database.getSymptomDao().getSymptomIdWithName("Tukkoisuus"), null,
+                        database.getRareSymptomDao().getRareSymptomIdWithName("Tukkoisuus")));
+
+        database.getJoinerDao().insertJoinerValue(new Joiner
+                (database.getDiseaseDao().getDiseaseIdWithName("Flunssa"),
+                        database.getSymptomDao().getSymptomIdWithName("Kurkkukipu"), null,
+                        database.getRareSymptomDao().getRareSymptomIdWithName("Kurkkukipu")));
     }
-    private void printPositiveSymptoms() {
-        for(int i= 0;i<positiveSymptoms.size();i++) {
-            Log.d("TEST",""+positiveSymptoms.get(i).getName());
-        }
-    }
-
 }

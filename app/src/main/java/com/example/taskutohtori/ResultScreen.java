@@ -24,7 +24,7 @@ public class ResultScreen extends AppCompatActivity {
             resultBox.setText("En osaa sanoa mikä sinua vaivaa.");
         }
         else {
-            resultBox.setText("Sinulla saattaa olla "+message);
+            resultBox.setText("Sinulla saattaa olla " + message);
         }
     }
 }

@@ -1,26 +1,20 @@
 package com.example.taskutohtori;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "Profiles")
 public class Profile {
-    private String name;
-    private int age;
-    private boolean male;
+
+    @PrimaryKey(autoGenerate = true)
+    public int id;
+    public String name;
+    public int age;
+    public boolean male;
 
     public Profile(String name, int age, boolean male) {
         this.name = name;
         this.age = age;
         this.male = male;
-    }
-
-    public int getAge() {
-        return this.age;
-    }
-
-    public boolean isMale() {
-        return this.male;
-    }
-
-    @Override
-    public String toString() {
-        return this.name;
     }
 }

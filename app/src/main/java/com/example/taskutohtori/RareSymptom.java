@@ -3,14 +3,14 @@ package com.example.taskutohtori;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "Symptoms")
-public class Symptom {
+@Entity(tableName = "RareSymptoms")
+public class RareSymptom {
 
     @PrimaryKey(autoGenerate = true)
     int id;
     String name;
 
-    public Symptom(String name) {
+    public RareSymptom(String name) {
         this.name = name;
     }
 }

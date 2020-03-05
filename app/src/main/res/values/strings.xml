@@ -8,4 +8,6 @@
     <string name="first_profile_sex_male">Mies</string>
     <string name="first_profile_sex_female">Nainen</string>
     <string name="first_profile_confirm_button">Luo Käyttäjä</string>
+    <string name="new_profile_button">Luo uusi profiili</string>
+    <string name="play_activity_question">Kuuluuko oireisiisi</string>
 </resources>
